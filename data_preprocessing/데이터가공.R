@@ -1,4 +1,6 @@
 # install.packages(c("rgdal","dplyr","readxl","writexl","stringr","raster","geosphere","ape","Imap","igraph"))
+# working directory는 data_preprocessing 폴더의 data폴로 설정해주세요.
+
 library(rgdal)
 library(ggplot2)
 library(dplyr)
