@@ -330,18 +330,14 @@ write_xlsx(distance,"교통수단(3개)과의거리.xlsx")
 
 # 6차 데이터 만들기 : 5차가공데이터와 합치기기
 sixth_data <- data.frame(fiveth_data,distance)
-names(sixth_data)[17] <- "Lon"
-names(sixth_data)[18] <- "Lat"
+names(sixth_data)[17] <- "LON"
+names(sixth_data)[18] <- "LAT"
 write_xlsx(sixth_data,"6차가공데이터.xlsx")
 
 
 
 # 7차 데이터 만들기(안쓰는 변수 제거)
 sixth_data <- read_excel("./6차가공데이터.xlsx")
-seventh_data <- data.frame(c(0:4915),sixth_data[,c(5,17,18,9:11,13,19:21)])
+seventh_data <- data.frame(c(0:4915),sixth_data[,c(17,18,5,9:11,13,19:21)])
 names(seventh_data)[1] <- "id"
 write_xlsx(seventh_data,"7차가공데이터.xlsx")
-
-
-seventh_data[3945,]
-seventh_data <- seventh_data[-3945,]
