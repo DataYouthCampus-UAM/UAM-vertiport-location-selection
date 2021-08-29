@@ -1,0 +1,6 @@
+기차역좌표 : http://info.korail.com/mbs/www/jsp/station/station_list.jsp?id=www_020110020000&category=1
+터미널좌표 : https://ko.wikipedia.org/wiki/%EB%B6%84%EB%A5%98:%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%EC%9D%98_%EB%B2%84%EC%8A%A4_%ED%84%B0%EB%AF%B8%EB%84%90
+교통관련데이터 - 승용차,버스,혼잡강도 : https://viewt.ktdb.go.kr/cong/map/page.do
+교통관련데이터 - 총인구수,세대수 : https://jumin.mois.go.kr/
+행정법정동코드 연계자료 : http://kssc.kostat.go.kr/ksscNew_web/kssc/common/CommonBoardList.do?gubun=1&strCategoryNameCode=019&strBbsId=kascrr&categoryMenu=014
+공역데이터 관련 url : https://map.vworld.kr/map/ws3dmap.do#
