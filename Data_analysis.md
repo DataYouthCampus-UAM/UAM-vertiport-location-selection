@@ -25,7 +25,7 @@ from urllib.parse import urlparse
 import numpy as np
 ```
 ## 데이터경로설정 
-### 압축파일에 있는 최종데이터 경로를 입력
+### data_set 경로 설정 압축파일에 있는 최종데이터 경로를 입력
 ### 경로 입력 안하면 에러
 ```
 data_set=pd.read_excel('최종데이터 경로 입력')
@@ -69,6 +69,7 @@ def eval_s(data_set):
 ## 비행 불가능 지역 제외 안하고 K-means
 #### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
 #### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,data_result_able_kmeans.to_excel 
 ```
 data_result_able_kmeans=data_result_able.copy()
 data_result_able_kmeans=data_result_able_kmeans.loc[:,['LAT','LON']]
@@ -96,6 +97,7 @@ g=data_result_able_kmeans[['cluster','silhouette-coeff']].groupby(['cluster']).m
 ## 비행 불가능 지역 제외 하고 K-means
 #### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
 #### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,data_result_en_kmeans.to_excel 
 ```
 data_result_en_kmeans=data_result_en.copy()
 data_result_en_kmeans=data_result_en_kmeans.loc[:,['LAT','LON']]
@@ -148,6 +150,7 @@ def db_scan(dbscan_data,ep,samples):
 ## 비행 불가능 지역 제외 안하고 DBSCAN
 #### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
 #### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,dbscan_data.to_excel 
 ```
 parameter_tuning_min_samples=[]
 parameter_tuning_eps=[]
@@ -213,6 +216,7 @@ g=dbscan_data[['cluster','silhouette-coeff']].groupby(['cluster']).mean().sort_v
 ## 비행 불가능 지역 제외 하고 DBSCAN
 #### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
 #### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,dbscan_data.to_excel
 
 ```
 parameter_tuning_min_samples=[]
@@ -288,4 +292,111 @@ g=dbscan_data[['cluster','silhouette-coeff']].groupby(['cluster']).mean().sort_v
 print(np.var(g),np.std(g))
 ```        
 
+## 비행 불가능 지역 제외 안하고 GMM
+#### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
+#### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,data_result_able_gmm.to_excel
+```
+###############################GMM 군집화################################################
+data_result_able_gmm=data_result_able.copy()
+data_result_able_gmm=data_result_able_gmm.loc[:,['LAT','LON']]
+gmm = GaussianMixture(n_components=52,random_state=0).fit(data_result_able_gmm)
+gmm_cluster_label=gmm.predict(data_result_able_gmm)
+data_result_able_gmm['cluster']=gmm_cluster_label
+##################################################################################
 
+############클러스터링 결과 데이터 백업 파일 경로 설정###############################
+#data_result_able_gmm.to_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210827\\gmm\\gmm_able.xlsx')
+eval_gmm=eval_s(data_result_able_gmm)
+print('score=',eval_gmm)
+data_for_plt=data_result_able_gmm.iloc[:,0:2]
+
+score_samples=silhouette_samples(data_for_plt,data_result_able_gmm['cluster'])
+data_result_able_gmm['silhouette-coeff']=score_samples
+## 클러스터별 실루엣 계수 표준편차, 분산 확인하기 위해 태블로로 시각화 -> 파일로 저장후 태블로에서 염
+g=data_result_able_gmm[['cluster','silhouette-coeff']].groupby(['cluster']).mean().sort_values(by='silhouette-coeff')
+
+
+
+
+#######태블로용 데이터 백업 경로 설정 #########
+##g.to_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210829\\평균분산표준편차\\GMM.xlsx')
+```
+
+## 비행 불가능 지역 제외 하고 GMM
+#### 백업 파일 만들떄 사용이라고 주석 달아놓은 부분
+#### 왼쪽에 주석 없애고 파일 경로 설정해야 에러 안남
+#### g.to_excel,data_result_en_gmm.to_excel
+```
+###############################GMM 군집화################################################
+data_result_en_gmm=data_result_en.copy()
+data_result_en_gmm=data_result_en_gmm.loc[:,['LAT','LON']]
+gmm = GaussianMixture(n_components=52,random_state=0).fit(data_result_en_gmm)
+gmm_cluster_label=gmm.predict(data_result_en_gmm)
+data_result_en_gmm['cluster']=gmm_cluster_label
+##################################################################################
+
+
+
+############클러스터링 결과 데이터 백업 파일 경로 설정###############################
+#data_result_en_gmm.to_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210829\\gmm\\gmm_en.xlsx')
+
+
+
+eval_gmm=eval_s(data_result_en_gmm)
+print('score=',eval_gmm)
+data_for_plt=data_result_en_gmm.iloc[:,0:2]
+
+score_samples=silhouette_samples(data_for_plt,data_result_en_gmm['cluster'])
+data_result_en_gmm['silhouette-coeff']=score_samples
+
+## 클러스터별 실루엣 계수 표준편차, 분산 확인하기 위해 태블로로 시각화 -> 파일로 저장후 태블로에서 염
+g=data_result_en_gmm[['cluster','silhouette-coeff']].groupby(['cluster']).mean().sort_values(by='silhouette-coeff')
+#######태블로용 데이터 백업 경로 설정 #########
+#g.to_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210829\\평균분산표준편차\\GMM.xlsx')
+
+```
+## 분산 표준편차 확인
+```
+print(np.var(g),np.std(g))
+```
+
+
+
+# 최종버티포트 위치 선정
+## 군집화 결과 군집별 가중치합 가장 높은 지역 선택
+### 압축파일중   kmeans_en_결과도출용 데이터 이용
+### 전처리는 엑셀 함수를 이용하였음
+```
+## 2번째 input data 경로 설정 ##
+#### kmeans_en_결과도출용 데이터 경로 설정
+#### 주석 없애고 경로입력 해야 에러 안뜸
+#data_result=pd.read_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210829\\최종결과\\kmeans_en_결과도출용.xlsx')
+```
+
+#### cluster별 가중치합 기준으로 오름차순 정렬 후 가장 큰 값 추출
+```
+d_result=pd.DataFrame([])
+for i in range (53):
+    data_find_king=data_result[data_result['cluster']==i].sort_values(by='총합',ascending=False)
+    try:
+        data_find_king_label=data_find_king.iloc[0,:] ## cluster 별로  오름 차순 정렬 후 가장 큰 값 추출
+    except:
+        pass
+    d_result=pd.concat([d_result,data_find_king_label],axis=1)
+    print(data_find_king)
+```
+
+#### 중복값 제거
+```
+d_result=d_result.T
+d_result.drop_duplicates(inplace=True)
+# 혹시모를 중복값 제거 
+```
+
+#### 백업
+```
+##최종 52개 버티포트 위치 백업파일경로설정#
+
+#d_result.to_excel('C:\\Users\\qjawl\\Desktop\\빅데이터\\빅데이터프로젝트\\UAM\\20210829\\최종결과\\centriod.xlsx')
+```
