@@ -1,0 +1,24 @@
+###########라이브러리 설치##############
+pip install selenium 
+pip install bs4
+pip install pandas
+pip install numpy
+#######################################
+
+
+#############라이브러리 호출############
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from selenium.webdriver.common.keys import Keys
+from xml.etree import ElementTree
+import requests
+import time
+import pandas as pd
+import numpy as np
+###########################################
+
+
