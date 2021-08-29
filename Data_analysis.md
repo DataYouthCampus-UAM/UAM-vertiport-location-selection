@@ -20,8 +20,6 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.metrics import silhouette_samples,silhouette_score
 from sklearn.mixture import GaussianMixture
-import requests 
-from urllib.parse import urlparse
 import numpy as np
 ```
 ## 데이터경로설정 
