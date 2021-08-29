@@ -1,0 +1,289 @@
+---
+title: "데이터전처리"
+output: html_document
+---
+##### 데이터전처리 설명 파일입니다.
+##### Working Directory는 “데이터전처리리”폴더의 “data”폴더로 지정합니다.
+
+#### 각 파일을 불러들이는 파일이 있습니다. 따라서 path는 따로 지정해주세요.
+
+```{r echo = T, message=F}
+#install.packages(c("readxl","writexl","dplyr","Imap","stringr"))
+library(readxl)
+library(writexl)
+library(dplyr)
+library(Imap)
+library(stringr)
+
+path = "C:/Users/madda/Desktop/데이터전처리/data"
+```
+
+맨 첫줄에서 주석표시를 없애고 패키지를 다운로드합니다. 다운로드 완료시 library()를 합니다. 반드시 path는 pc환경에 맞춰 바꿔줍니다.
+
+
+
+### 1. 교통관련데이터 불러오기
+```{r echo = T}
+# 교통혼잡,인구수 데이터 변수 추가
+trans <- read_excel(sprintf("%s/교통관련데이터.xlsx",path)) %>% as.data.frame()
+str(trans) # 데이터셋 확인
+```
+
+
+```{r echo = T}
+# 사용할 칼럼 추출
+trans_copy <- trans[,-c(7,9,10)]
+trans_copy$행정주소 <- paste(trans_copy$`도/광역시/시`,trans_copy$시군구,trans_copy$읍면동,rep = " ")
+trans_copy <- trans_copy[,-c(1,2,3)]
+trans_copy <- trans_copy[,c(5,1:4)]
+# 데이터 확인
+str(trans_copy)
+```
+
+
+```{r echo = T}
+# 결측값 확인
+trans_copy[is.na(trans_copy),]
+```
+
+### 2. 행정법정동코드 연계자료 불러오기
+```{r echo = T}
+# 행정주소, 법정주소 연결시키기
+relation_data <- read_excel(sprintf("%s/행정법정동코드 연계자료.xlsx",path))
+
+# 데이터셋 확인
+str(relation_data)
+
+# 사용할 칼럼 추출 및 가공
+copy_relation_data <- relation_data[,-c(8,10,11,12)]
+colnames(copy_relation_data) <- copy_relation_data[1,]
+copy_relation_data <- copy_relation_data[-1,]
+
+# 데이터 확인
+str(copy_relation_data)
+
+## 읍면동 데이터만 남기기
+si_data_list <- grep("시$",copy_relation_data$법정동, value = 1)
+gu_data_list <- grep("구$",copy_relation_data$법정동, value = 1)
+gun_data_list <- grep("군$",copy_relation_data$법정동, value = 1)
+ri_data_list <- grep("리$",copy_relation_data$법정동, value = 1)
+do_data_list <- grep("도$",copy_relation_data$법정동, value = 1)
+copy_relation_data <- copy_relation_data[!(copy_relation_data$법정동 %in% gu_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$법정동 %in% gun_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$법정동 %in% si_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$법정동 %in% ri_data_list),]
+copy_relation_data <- copy_relation_data[!(copy_relation_data$법정동 %in% do_data_list),]
+copy_relation_data$법정동코드 <- floor(as.numeric(copy_relation_data$법정동코드)/100)
+copy_relation_data$행정주소 <- paste(copy_relation_data$시도,copy_relation_data$시군구,
+                                 copy_relation_data$행정구역명, rep ="")
+copy_relation_data$법정동명 <- paste(copy_relation_data$시도,copy_relation_data$시군구,
+                                 copy_relation_data$법정동, rep ="")
+names(copy_relation_data)[8] <- "EMD_CD"
+
+# 데이터 확인
+str(copy_relation_data)
+```
+
+
+```{r echo = T}
+# copy_relation_data 결측값 수정 및 제거
+copy_relation_data$행정구역코드[copy_relation_data$법정동 == "신수동" & copy_relation_data$시군구 == "사천시"] <- 0
+copy2_relation_data <- na.omit(copy_relation_data) %>% as.data.frame()
+
+# 결측값 개수 확인
+sum(is.na(copy2_relation_data))
+
+# 데이터 확인
+str(copy2_relation_data)
+
+# 파일을 저장
+write_xlsx(copy2_relation_data,"copy2_relation_data.xlsx")
+```
+제대로 읽지 못해서 저장을 하였습니다.
+
+```{r echo = T}
+# trans_copy, copy2_relation_data 합치기
+str(trans_copy$행정주소)
+
+# 우측 공백 제거
+trans_copy$행정주소 <- str_trim(trans_copy$행정주소, side = "right")
+
+# 우측 공백 제거 확인
+head(trans_copy$행정주소)
+
+# 파일을 다시 읽습니다.
+copy2_relation_data <- read_excel(sprintf("%s/copy2_relation_data.xlsx",path))
+```
+
+### 3. copy2_relation_data, trans_copy 합치기
+```{r echo = T}
+# copy2_relation_data, trans_copy 합치기
+join_data <- left_join(copy2_relation_data,trans_copy, by ="행정주소")
+
+# 필요한 칼럼만 추출 및 가공
+first_data <- join_data[,c(8:14)]
+names(first_data)[3] <- "법정동주소"
+
+# 데이터셋 확인
+str(first_data)
+```
+
+
+### 4. 중복된 값, 결측값 제거하기
+```{r echo = T}
+# 행정주소 겹친거 제거하기
+first_data$id <- c(1:length(first_data$EMD_CD))
+eraser_rep_data <- first_data[duplicated(first_data$행정주소),]
+
+# 데이터 확인
+str(eraser_rep_data)
+no_rep_data <- first_data[!(first_data$id %in% eraser_rep_data$id),]
+
+# 데이터 확인
+str(no_rep_data)
+
+# 관측 안된 값 제거하기
+na_data <- no_rep_data[is.na(no_rep_data$승용차),]
+
+# 데이터 확인
+str(na_data)
+second_data <- no_rep_data[!(no_rep_data$id %in% na_data$id),]
+
+# 데이터 확인
+str(second_data)
+```
+
+### 5. 각 읍면동 좌표데이터 추가하기
+```{r echo = T}
+# 좌표 데이터 추가하기
+location <- read.csv(sprintf("%s/center_location.csv",path))
+
+# 데이터 확인
+str(location)
+
+location <- as.data.frame(location)
+location <- location[,-1]
+colnames(location) <- c("LON","LAT")
+location <- location[,c(2,1)]
+# 데이터 확인
+str(location)
+```
+
+### 6. location, v2_copy 데이터 합치기
+```{r echo= T}
+join_data_2 <- data.frame(second_data,location)
+# 데이터 확인
+str(join_data_2)
+
+# 결측값 개수 확인
+sum(is.na(join_data_2))
+```
+
+
+### 7. 각 읍면동 위/경도를 통해서 터미널/기차역/공항과의 거리 구하기
+```{r echo = T, warning= F, message=F}
+# 읍면동 중심위치와 가까운 터미널 거리 구하기
+terminal <- read_excel(sprintf("%s/터미널_위키.xlsx",path))
+# 데이터 확인
+str(terminal)
+
+# 사용할 데이터 추출 및 가공
+terminal <- terminal[,-c(1,4)]
+colnames(terminal) <- c("LON","LAT")
+
+# 데이터 확인
+str(terminal)
+
+# 거리 계산(harver_sine 공식)
+terminal_dist <- c()
+for(i in c(1:length(join_data_2$LON))){
+  data <- c()
+  data <- gdist(lon.1 = join_data_2$LON[i],
+                lat.1 = join_data_2$LAT[i],
+                lon.2 = terminal$LON,
+                lat.2 = terminal$LAT,
+                units = "m")
+  terminal_dist <- c(terminal_dist, min(data))
+}
+# 데이터 확인
+str(terminal_dist)
+
+
+# 읍면동 중심위치와 가까운 기차역 거리 구하기
+train_station_data <- read_excel(sprintf("%s/기차역좌표.xlsx",path))
+# 데이터 확인
+str(train_station_data)
+
+# 사용할 데이터 추출
+train_station_data <- train_station_data[,-1]
+
+# 데이터 확인
+str(train_station_data)
+
+# 거리 계산(harver_sine 공식)
+train_station_dist <- c()
+for(i in c(1:length(join_data_2$LON))){
+  train_data <- c()
+  train_data <- gdist(lon.1 = join_data_2$LON[i],
+                      lat.1 = join_data_2$LAT[i],
+                      lon.2 = train_station_data$경도,
+                      lat.2 = train_station_data$위도,
+                      units = "m")
+  train_station_dist <- c(train_station_dist,min(train_data))
+}
+# 데이터확인
+str(train_station_dist)
+
+# 읍면동 중심위치와 가까운 공항 거리 구하기
+airport_data <- read.csv(sprintf("%s/공항위치.csv",path))
+
+# 데이터 확인
+str(airport_data)
+
+# 데이터 추칠 및 가공
+colnames(airport_data) <- c("공항","위도","경도")
+airport_data <- airport_data[,-1]
+
+# 데이터 확인
+str(airport_data)
+
+# 거리 계산(harver_sine 공식)
+airport_dist <- c()
+for(i in c(1:length(join_data_2$LON))){
+  airport <- c()
+  airport <- data <- gdist(lon.1 = join_data_2$LON[i],
+                           lat.1 = join_data_2$LAT[i],
+                           lon.2 = airport_data$경도,
+                           lat.2 = airport_data$위도,
+                           units = "m")
+  airport_dist <- c(airport_dist,min(airport))
+}
+# 데이터 확인
+str(airport_dist)
+```
+
+```{r echo = T}
+# 3개 거리 합치기
+distance <- data.frame(terminal_dist,train_station_dist,airport_dist)
+colnames(distance) <- c("터미널과의거리","기차역과의거리","공항과의거리")
+
+# 데이터 확인
+str(distance)
+
+# 3차 데이터 만들기 : join_data_2와 distance 데이터셋 합치기
+third_data <- data.frame(c(0:3269),join_data_2,distance)
+
+# 데이터 확인
+str(third_data)
+
+# 사용할 데이터 추출 및 가공
+third_data <- third_data[,c(1,10:11,3:9,12:14)]
+colnames(third_data)[1] <- "new_id"
+
+# 데이터 확인
+str(third_data)
+
+# 엑셀로 저장
+write_xlsx(third_data,"전처리데이터.xlsx")
+```
+
