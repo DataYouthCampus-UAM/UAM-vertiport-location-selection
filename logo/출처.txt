@@ -1,0 +1,5 @@
+pandas : https://pandas.pydata.org/about/citing.html
+skitik-learn : 위키피디아
+numpy : 공식홈페이지
+matplotlib : https://matplotlib.org/stable/gallery/misc/logos2.html
+selenium : https://en.wikipedia.org/wiki/Selenium_(software)

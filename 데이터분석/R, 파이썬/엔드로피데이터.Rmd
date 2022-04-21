@@ -1,0 +1,27 @@
+---
+title: "엔트로피 데이터"
+output: html_document
+---
+
+
+```{r echo = T, message=FALSE}
+library(readxl)
+library(dplyr)
+library(writexl)
+path = "C:/Users/madda/Desktop/data_analysis/data"
+
+# 엔트로피 가중치 적용할 데이터셋 만들기
+entropy<- read_excel(sprintf("%s/전처리데이터.xlsx",path))%>% as.data.frame()
+
+# 데이터 확인
+str(entropy)
+
+# 엔트로피 불필요 자료 제거
+entropy[entropy$버스 == 0,] 
+entropy <- entropy[-2723,]
+entropy <- entropy[,-10]
+
+# 데이터 확인
+str(entropy)
+write_xlsx(entropy,"entropy.xlsx")
+```
